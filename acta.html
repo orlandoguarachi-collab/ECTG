@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Acta de Conformación ECTG</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body { font-family: Arial, sans-serif; background: #eef2f7; padding: 30px 20px; }
+
+    /* ===== PANTALLA DE CONTRASEÑA ===== */
+    #pantalla-login {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #1a3a6b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .login-box {
+      background: white;
+      padding: 40px 50px;
+      border-radius: 14px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+      text-align: center;
+      max-width: 380px;
+      width: 90%;
+    }
+    .login-box img { width: 70px; margin-bottom: 16px; }
+    .login-box h3 { color: #1a3a6b; font-size: 18px; margin-bottom: 6px; }
+    .login-box p  { color: #666; font-size: 13px; margin-bottom: 20px; }
+    .login-box input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #bbb;
+      border-radius: 8px;
+      font-size: 16px;
+      text-align: center;
+      letter-spacing: 4px;
+      margin-bottom: 14px;
+      outline: none;
+    }
+    .login-box input:focus { border-color: #1a3a6b; }
+    .login-box button {
+      width: 100%;
+      padding: 11px;
+      background: #1a3a6b;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .login-box button:hover { background: #2a5298; }
+    .login-error {
+      color: #cc0000;
+      font-size: 13px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    h2 { text-align: center; margin-bottom: 20px; color: #1a3a6b; font-size: 22px; }
+
+    .form-panel {
+      background: #fff;
+      max-width: 720px;
+      margin: 0 auto 30px auto;
+      padding: 25px 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    .form-panel label { display: block; margin-top: 14px; font-weight: bold; color: #333; font-size: 14px; }
+    .form-panel input,
+    .form-panel select { width: 100%; padding: 8px 10px; margin-top: 5px; border: 1px solid #bbb; border-radius: 6px; font-size: 14px; }
+
+    .fila-dos { display: flex; gap: 15px; }
+    .fila-dos > div { flex: 1; }
+
+    .miembro-bloque { border: 1px solid #d0d8e8; border-radius: 8px; padding: 15px; margin-top: 14px; background: #f7f9fc; }
+    .miembro-bloque h4 { color: #1a3a6b; margin-bottom: 10px; font-size: 14px; }
+
+    .btn-pdf {
+      display: block;
+      margin: 25px auto 0 auto;
+      background: #1a3a6b;
+      color: white;
+      border: none;
+      padding: 12px 40px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-pdf:hover { background: #2a5298; }
+
+    #preview-area { max-width: 760px; margin: 0 auto; }
+    .preview-label { text-align: center; font-size: 13px; color: #666; margin-bottom: 8px; }
+
+    #acta-preview {
+      background: white;
+      width: 100%;
+      padding: 24px 32px 24px 42px;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      font-family: Arial, sans-serif;
+      font-size: 12.5px;
+      line-height: 1.6;
+      position: relative;
+    }
+    #acta-preview::before {
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 8px; height: 100%; background: #1a3a6b;
+    }
+    #acta-preview::after {
+      content: ''; position: absolute; top: 0; left: 8px;
+      width: 6px; height: 100%; background: #f5c518;
+    }
+
+    .acta-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .acta-header img { width: 100px; height: 100px; object-fit: contain; }
+    .acta-header-texto { text-align: center; flex: 1; padding: 0 10px; }
+    .acta-header-texto p { margin: 1px 0; font-size: 12.5px; font-weight: bold; }
+
+    .acta-separador { border: none; border-top: 2px dashed #333; margin: 8px 0; }
+
+    .acta-titulo {
+      text-align: center; font-weight: bold; font-size: 13px;
+      margin: 12px 0 14px 0; text-decoration: underline; text-transform: uppercase;
+    }
+
+    .acta-cuerpo { text-align: justify; margin-bottom: 10px; font-size: 12.5px; }
+
+    .acta-lista { margin-top: 10px; }
+    .acta-miembro { display: flex; align-items: flex-end; margin-bottom: 18px; gap: 2px; font-size: 12.5px; }
+    .acta-miembro .num  { min-width: 18px; font-weight: bold; }
+    .acta-miembro .lbl  { font-weight: bold; white-space: nowrap; margin: 0 4px; }
+    .acta-miembro .linea-puntos { flex: 2; border-bottom: 1px dotted #333; min-width: 80px; padding-bottom: 1px; }
+    .acta-miembro .linea-puntos.ci,
+    .acta-miembro .linea-puntos.firma { flex: 1.2; min-width: 70px; }
+    .acta-miembro .curso-val { font-weight: normal; white-space: nowrap; margin-left: 4px; }
+
+    .acta-especialidad { margin-top: 14px; font-size: 12.5px; font-weight: bold; }
+    .acta-especialidad span { font-weight: normal; border-bottom: 1px solid #333; display: inline-block; min-width: 200px; }
+
+    .acta-reglamento { text-align: justify; font-size: 12.5px; margin-top: 12px; }
+    .acta-constancia  { margin-top: 14px; font-size: 12.5px; }
+
+    .acta-firmas { display: flex; justify-content: space-between; margin-top: 30px; font-size: 12.5px; }
+    .acta-firmas .firma-bloque { text-align: center; width: 42%; }
+    .acta-firmas .linea-firma-pie { border-bottom: 1px solid #333; width: 100%; margin-bottom: 4px; height: 30px; }
+  </style>
+</head>
+<body>
+
+<h2>📋 Acta de Conformación del ECTG</h2>
+
+<div class="form-panel">
+  <div class="fila-dos">
+    <div>
+      <label>Hora</label>
+      <input type="text" id="hora" value="11:00" oninput="actualizarPreview()"/>
+    </div>
+    <div>
+      <label>Día</label>
+      <input type="number" id="dia" value="30" min="1" max="31" oninput="actualizarPreview()"/>
+    </div>
+  </div>
+
+  <div class="fila-dos">
+    <div>
+      <label>Mes</label>
+      <select id="mes" onchange="actualizarPreview()">
+        <option>Enero</option><option>Febrero</option><option>Marzo</option>
+        <option>Abril</option><option>Mayo</option><option>Junio</option>
+        <option>Julio</option><option>Agosto</option><option>Septiembre</option>
+        <option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+      </select>
+    </div>
+    <div>
+      <label>Gestión (año)</label>
+      <input type="number" id="gestion" value="2025" oninput="actualizarPreview()"/>
+    </div>
+  </div>
+
+  <label>Cantidad de miembros</label>
+  <select id="cantidad" onchange="generarMiembros()">
+    <option value="1">1 miembro</option>
+    <option value="2">2 miembros</option>
+    <option value="3" selected>3 miembros</option>
+  </select>
+
+  <div id="miembros-container"></div>
+
+  <label>Curso (paralelo)</label>
+  <select id="curso" onchange="actualizarPreview()">
+    <option>A</option><option>B</option><option>C</option><option>D</option>
+    <option>E</option><option>F</option><option>G</option>
+  </select>
+
+  <label>Estudiantes de la especialidad de:</label>
+  <input type="text" id="especialidad" placeholder="Ej: Electrónica, Informática..." oninput="actualizarPreview()"/>
+
+  <button class="btn-pdf" onclick="descargarPDF()">⬇ Descargar PDF</button>
+</div>
+
+<div id="preview-area">
+  <p class="preview-label">— Vista previa del acta —</p>
+  <div id="acta-preview">
+
+    <div class="acta-header">
+      <img src="1a.jpg" alt="Escudo" onerror="this.style.visibility='hidden'"/>
+      <div class="acta-header-texto">
+        <p>UNIDAD EDUCATIVA TÉCNICO HUMANÍSTICO</p>
+        <p>MARTIN CARDENAS HERMOSA "B"</p>
+        <p>SIE.40730116 R.M.68(06-02-1976)</p>
+        <p>EL ALTO 2-SUB-DISTRITAL-RED 304-VILLA ADELA</p>
+      </div>
+      <img src="escudo_de_la_paz.svg" alt="Escudo La Paz" onerror="this.style.visibility='hidden'"/>
+    </div>
+
+    <hr class="acta-separador"/>
+
+    <div class="acta-titulo">
+      ACTA DE CONFORMACIÓN DEL EQUIPO COMUNITARIO DE TRABAJO DE GRADO
+    </div>
+
+    <div class="acta-cuerpo">
+      En la ciudad de EL ALTO – LA PAZ a horas <b id="pre-hora">11:00</b> del día
+      <b id="pre-dia">30</b> de <b id="pre-mes">Septiembre</b>
+      en la Unidad Educativa Técnico Humanístico <b>"MARTIN CARDENAS HERMOSA B"</b>
+      nos reunimos para conformar el Equipo Comunitario de Trabajo de Grado (ECTG) de
+      Sexto año de formación Secundaria Comunitaria Productiva, con el propósito de llevar
+      a cabo la Defensa de Trabajo de Grado en la presente gestión
+      <b id="pre-gestion">2025</b> y con el deseo de fortalecer vínculos comunitarios
+      en atención a normativa vigente.
+    </div>
+
+    <div class="acta-cuerpo">El equipo comunitario de trabajo de grado queda conformado por:</div>
+
+    <div class="acta-lista" id="lista-preview"></div>
+
+    <div class="acta-especialidad">
+      ESTUDIANTES DE LA ESPECIALIDAD DE: <span id="pre-especialidad"></span>
+    </div>
+
+    <div class="acta-reglamento">
+      En conformidad al reglamento de Modalidades de Graduación del Bachillerato Técnico Humanístico
+      de la Unidad Educativa Técnico Humanístico <b>"MARTIN CARDENAS HERMOSA B"</b>, el equipo
+      conformado no podrá ser modificado y deberá cumplir con todas las normas y requisitos para
+      la presentación del Trabajo de Grado.
+    </div>
+
+    <div class="acta-constancia">Para su constancia y conformidad, firman el presente:</div>
+
+    <div class="acta-firmas">
+      <div class="firma-bloque">
+        <div class="linea-firma-pie"></div>
+        <p>DIRECTOR(A) U.E.</p>
+      </div>
+      <div class="firma-bloque">
+        <div class="linea-firma-pie"></div>
+        <p>MAESTRO(A) DE ESPECIALIDAD</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  document.getElementById('mes').selectedIndex = 8;
+
+  function generarMiembros() {
+    const n = parseInt(document.getElementById('cantidad').value);
+    const container = document.getElementById('miembros-container');
+    container.innerHTML = '';
+    for (let i = 1; i <= n; i++) {
+      container.innerHTML += `
+        <div class="miembro-bloque">
+          <h4>Miembro ${i}</h4>
+          <label>Nombre completo</label>
+          <input type="text" id="nombre${i}" placeholder="Nombre y apellido" oninput="actualizarPreview()"/>
+          <label>Carnet de Identidad (CI)</label>
+          <input type="text" id="ci${i}" placeholder="Número de CI" oninput="actualizarPreview()"/>
+        </div>`;
+    }
+    actualizarPreview();
+  }
+
+  function actualizarPreview() {
+    document.getElementById('pre-hora').textContent         = document.getElementById('hora').value    || '___';
+    document.getElementById('pre-dia').textContent          = document.getElementById('dia').value     || '___';
+    document.getElementById('pre-mes').textContent          = document.getElementById('mes').value;
+    document.getElementById('pre-gestion').textContent      = document.getElementById('gestion').value || '____';
+    document.getElementById('pre-especialidad').textContent = document.getElementById('especialidad').value;
+
+    const n     = parseInt(document.getElementById('cantidad').value);
+    const curso = document.getElementById('curso').value;
+    let html = '';
+    for (let i = 1; i <= n; i++) {
+      const nombre = document.getElementById('nombre' + i)?.value || '';
+      const ci     = document.getElementById('ci' + i)?.value     || '';
+      html += `
+        <div class="acta-miembro">
+          <span class="num">${i}.</span>
+          <span class="linea-puntos">${nombre}</span>
+          <span class="lbl">CI</span>
+          <span class="linea-puntos ci">${ci}</span>
+          <span class="lbl">Firma</span>
+          <span class="linea-puntos firma"></span>
+          <span class="lbl">Curso</span>
+          <span class="curso-val">${curso}</span>
+        </div>`;
+    }
+    document.getElementById('lista-preview').innerHTML = html;
+  }
+
+  generarMiembros();
+
+  async function descargarPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+
+    const hora         = document.getElementById('hora').value         || '___';
+    const dia          = document.getElementById('dia').value          || '___';
+    const mes          = document.getElementById('mes').value;
+    const gestion      = document.getElementById('gestion').value      || '____';
+    const curso        = document.getElementById('curso').value;
+    const especialidad = document.getElementById('especialidad').value || '';
+    const n            = parseInt(document.getElementById('cantidad').value);
+
+    const miembros = [];
+    for (let i = 1; i <= n; i++) {
+      miembros.push({
+        nombre: document.getElementById('nombre' + i)?.value || '',
+        ci:     document.getElementById('ci' + i)?.value     || ''
+      });
+    }
+
+    const pageW = 215.9, pageH = 279.4;
+    const azulW = 5, amarW = 4;
+    const marL  = azulW + amarW + 15;
+    const marR  = 18;
+    const contentW = pageW - marL - marR;
+
+    doc.setFillColor(26, 58, 107);
+    doc.rect(0, 0, azulW, pageH, 'F');
+    doc.setFillColor(245, 197, 24);
+    doc.rect(azulW, 0, amarW, pageH, 'F');
+
+    const cargarImg = (src) => new Promise(resolve => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        c.width = img.naturalWidth || 100;
+        c.height = img.naturalHeight || 100;
+        c.getContext('2d').drawImage(img, 0, 0);
+        resolve(c.toDataURL('image/png'));
+      };
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+
+    const [imgIzq, imgDer] = await Promise.all([
+      cargarImg('1a.jpg'),
+      cargarImg('escudo_de_la_paz.svg')
+    ]);
+
+    let y = 12;
+    const logoSize = 32;
+    if (imgIzq) doc.addImage(imgIzq, 'PNG', marL, y, logoSize, logoSize);
+    if (imgDer) doc.addImage(imgDer, 'PNG', pageW - marR - logoSize, y, logoSize, logoSize);
+
+    const textW = contentW - logoSize * 2 - 8;
+    const cx    = marL + logoSize + 4 + textW / 2;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('UNIDAD EDUCATIVA TÉCNICO HUMANÍSTICO',        cx, y + 6,  { align: 'center', maxWidth: textW });
+    doc.text('MARTIN CARDENAS HERMOSA "B"',                 cx, y + 12, { align: 'center', maxWidth: textW });
+    doc.text('SIE.40730116 R.M.68(06-02-1976)',             cx, y + 18, { align: 'center', maxWidth: textW });
+    doc.setFontSize(9);
+    doc.text('EL ALTO 2-SUB-DISTRITAL-RED 304-VILLA ADELA', cx, y + 23, { align: 'center', maxWidth: textW });
+
+    y += 36;
+    doc.setLineDashPattern([1, 1], 0);
+    doc.setDrawColor(0); doc.setLineWidth(0.4);
+    doc.line(marL, y, pageW - marR, y);
+    doc.setLineDashPattern([], 0);
+
+    y += 9;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
+    doc.text('ACTA DE CONFORMACIÓN DEL EQUIPO COMUNITARIO DE TRABAJO DE GRADO',
+      pageW / 2, y, { align: 'center', maxWidth: contentW });
+    y += 10;
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
+    const p1 = `En la ciudad de EL ALTO - LA PAZ a horas ${hora} del día ${dia} de ${mes} en la Unidad Educativa Técnico Humanístico "MARTIN CARDENAS HERMOSA B" nos reunimos para conformar el Equipo Comunitario de Trabajo de Grado (ECTG) de Sexto año de formación Secundaria Comunitaria Productiva, con el propósito de llevar a cabo la Defensa de Trabajo de Grado en la presente gestión ${gestion} y con el deseo de fortalecer vínculos comunitarios en atención a normativa vigente.`;
+    const l1 = doc.splitTextToSize(p1, contentW);
+    doc.text(l1, marL, y, { align: 'justify', maxWidth: contentW });
+    y += l1.length * 5.5 + 5;
+
+    doc.text('El equipo comunitario de trabajo de grado queda conformado por:', marL, y);
+    y += 10;
+
+    for (let i = 0; i < miembros.length; i++) {
+      const m = miembros[i], by = y + 4;
+      const dash = () => { doc.setLineDashPattern([0.5, 0.8], 0); doc.setLineWidth(0.3); };
+      const solid = () => doc.setLineDashPattern([], 0);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${i + 1}.`, marL, by);
+
+      const xN = marL + 7, xNEnd = xN + 55;
+      doc.setFont('helvetica', 'normal');
+      if (m.nombre) doc.text(m.nombre, xN, by);
+      dash(); doc.line(xN, by + 1, xNEnd, by + 1); solid();
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('CI', xNEnd + 3, by);
+      const xC = xNEnd + 10, xCEnd = xC + 32;
+      doc.setFont('helvetica', 'normal');
+      if (m.ci) doc.text(m.ci, xC, by);
+      dash(); doc.line(xC, by + 1, xCEnd, by + 1); solid();
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Firma', xCEnd + 3, by);
+      const xF = xCEnd + 13, xFEnd = xF + 28;
+      dash(); doc.line(xF, by + 1, xFEnd, by + 1); solid();
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Curso', xFEnd + 3, by);
+      doc.setFont('helvetica', 'normal');
+      doc.text(curso, xFEnd + 15, by);
+
+      y += 18;
+    }
+
+    y += 2;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+    doc.text('ESTUDIANTES DE LA ESPECIALIDAD DE:', marL, y);
+    const xEsp = marL + doc.getTextWidth('ESTUDIANTES DE LA ESPECIALIDAD DE:  ');
+    doc.setFont('helvetica', 'normal');
+    if (especialidad) doc.text(especialidad, xEsp, y);
+    doc.setLineWidth(0.3);
+    doc.line(xEsp, y + 1, pageW - marR, y + 1);
+
+    y += 10;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
+    const p2 = `En conformidad al reglamento de Modalidades de Graduación del Bachillerato Técnico Humanístico de la Unidad Educativa Técnico Humanístico "MARTIN CARDENAS HERMOSA B", el equipo conformado no podrá ser modificado y deberá cumplir con todas las normas y requisitos para la presentación del Trabajo de Grado.`;
+    const l2 = doc.splitTextToSize(p2, contentW);
+    doc.text(l2, marL, y, { align: 'justify', maxWidth: contentW });
+    y += l2.length * 5.5 + 8;
+
+    doc.text('Para su constancia y conformidad, firman el presente:', marL, y);
+    y += 25;
+
+    const fw = 65, fx1 = marL + 5, fx2 = pageW - marR - fw - 5;
+    doc.setLineWidth(0.4);
+    doc.line(fx1, y, fx1 + fw, y);
+    doc.line(fx2, y, fx2 + fw, y);
+    y += 5;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+    doc.text('DIRECTOR(A) U.E.',           fx1 + fw / 2, y, { align: 'center' });
+    doc.text('MAESTRO(A) DE ESPECIALIDAD', fx2 + fw / 2, y, { align: 'center' });
+
+    doc.save('Acta_ECTG.pdf');
+  }
+</script>
+</body>
+</html>
